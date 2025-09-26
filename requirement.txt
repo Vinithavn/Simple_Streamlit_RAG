@@ -1,0 +1,6 @@
+streamlit == 1.50.0
+langchain == 0.3.27
+langchain_ollama == 0.3.8
+ollama == 0.6.0
+python-dotenv ==1.1.1
+opeani == 1.109.1

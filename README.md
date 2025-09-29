@@ -1,10 +1,7 @@
 ### Steps:
 1. Create a virtual environment using <pre>uv venv<pre>
-2. Install packages from requirements.txt
-3. Set up the API keys for the models from [OpenRouter](https://openrouter.ai/)
-
-    **Models used**
-    - https://openrouter.ai/x-ai/grok-4-fast
-
-4. Activate the virtual environment 
+2. Install packages from pyproject.toml
+3. Activate the virtual environment 
+    - Windows <pre>path\to\venv\Scripts\activate<pre>
+    -macOS/Linux <pre>source path/to/venv/bin/activate<pre>
 5. Run the application using streamlit run main.py

@@ -1,37 +1,34 @@
-import requests
-import json
-import os
-from dotenv import load_dotenv
+from langchain_ollama import ChatOllama
+from langchain.chains import create_retrieval_chain
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains.combine_documents import create_stuff_documents_chain
 
-load_dotenv()
+# Step 1: Initialize the Ollama chat model
+def get_response(retriever,modelname,query):
+    llm = ChatOllama(model=modelname, temperature=0)
 
-grok_api_key = os.getenv("GROK_OPENROUTER_API_KEY")
+    prompt = ChatPromptTemplate.from_template(
+        """
+        Answer the following question based only on the given context.
 
-def generate_grok(query):
+        <context>
+        {context}
+        </context>
 
-    response = requests.post(
-    url="https://openrouter.ai/api/v1/chat/completions",
-    headers={
-        "Authorization": f"Bearer {grok_api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "<YOUR_SITE_URL>", # Optional. Site URL for rankings on openrouter.ai.
-        "X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
-    },
-    data=json.dumps({
-        "model": "x-ai/grok-4-fast:free",
-        "messages": [
-        {
-            "role": "user",
-            "content": [
-            {
-                "type": "text",
-                "text": query
-            },
-            
-            ]
-        }
-        ],
-        
-    })
+        Question: {input}
+        """
     )
-    return response.json()["choices"][0]["message"]["content"]
+
+    # Step 3: Create a documents chain that combines retrieved documents into the prompt
+    docs_chain = create_stuff_documents_chain(llm, prompt)
+
+    # Step 4: Create a retrieval chain by joining the retriever and the documents chain
+    retrieval_chain = create_retrieval_chain(retriever, docs_chain)
+
+    # Step 5: Query the chain with a question
+    response = retrieval_chain.invoke({"input": query})
+
+    return response["answer"]
+
+
+

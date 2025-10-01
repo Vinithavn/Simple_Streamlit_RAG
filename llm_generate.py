@@ -1,11 +1,21 @@
-from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import create_retrieval_chain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 
-# Step 1: Initialize the Ollama chat model
-def get_response(retriever,modelname,query):
-    llm = ChatOllama(model=modelname, temperature=0)
+from dotenv import load_dotenv
+import os
+load_dotenv()  
+
+os.environ["GOOGLE_API_KEY"]  = os.getenv("GEMINI_API")
+
+def get_response(retriever,query):
+    llm =  ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            temperature=0,
+            max_tokens=None,
+            timeout=None,
+            max_retries=2,)
 
     prompt = ChatPromptTemplate.from_template(
         """

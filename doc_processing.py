@@ -2,7 +2,7 @@ from langchain.document_loaders import PyPDFLoader
 from langchain_community.document_loaders.word_document import Docx2txtLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS 
-from langchain_ollama import OllamaEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 import tempfile
 
@@ -35,12 +35,11 @@ def chunk_documents(uploaded_file, Chunk_size, Chunk_overalp):
     chunks = text_splitter.split_documents(documents)
     return chunks 
 
-def get_emebeddings(query,model_name):
-    embeddings = OllamaEmbeddings(model=model_name)
-    return embeddings.embed_query(query)
 
-def create_retriever(model_name,documents):
-    embeddings = OllamaEmbeddings(model=model_name)
+
+def create_retriever(documents):
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="models/gemini-embedding-001")
     vectorstore = FAISS.from_documents(documents, embeddings)
     retriever = vectorstore.as_retriever()
     return retriever

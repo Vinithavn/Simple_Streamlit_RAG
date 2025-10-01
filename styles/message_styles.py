@@ -9,7 +9,7 @@ def style_message(text, role):
             border-radius: 10px;
             text-align: left;
         ">
-            {"  USER: "+text}
+            {"You: "+text}
             
         </div>
         """
@@ -23,7 +23,7 @@ def style_message(text, role):
             border-radius: 10px;
             text-align: left;
         ">
-            {"  BOT: "+text}
+            {"  Bot: "+text}
             
         </div>
         """

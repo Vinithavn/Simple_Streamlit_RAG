@@ -58,16 +58,53 @@ def main():
                     
                     
     if uploaded_files and st.session_state.document_chunks:      
+
+        st.markdown("""
+        <style>
+        .chat-container {
+            height: 70vh;
+            overflow-y: auto;
+            padding-bottom: 80px; /* space for input box */
+        }
+        .fixed-input {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        chat_container = st.container()
+        with chat_container:
+            st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+
+            for chat in st.session_state.chat_history:
+                styled_msg = style_message(chat['text'], chat['role'])
+                st.markdown(styled_msg, unsafe_allow_html=True)
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # Fixed input box container
+        st.markdown('<div class="fixed-input">', unsafe_allow_html=True)
         st.text_input("Your query:", key="user_input", on_change=submit)
         st.button("Submit", on_click=submit)
 
-        for chat in st.session_state.chat_history:
-            styled_msg = style_message(chat['text'], chat['role'])
-            st.markdown(styled_msg, unsafe_allow_html=True)
+        
+
 
             
     elif st.session_state.document_chunks == []:
-        st.info("Unable to extract the text")
+        st.info("Unable to extract the text") 
+
+
+    
+
+
 
 
 if __name__ == "__main__":

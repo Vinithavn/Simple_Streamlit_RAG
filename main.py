@@ -1,7 +1,7 @@
 import streamlit as st
-import llm_generate
-import doc_processing
-from styles.message_styles import style_message
+from src import llm_generate,doc_processing
+from styles.message_styles import style_message,chat_container_css
+from src.utils import *
 
 Chunk_size = 1000
 Chunk_overalp = 100
@@ -14,16 +14,24 @@ if "document_chunks" not in st.session_state:
     st.session_state.document_chunks =  None
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "retriever" not in st.session_state:
+    st.session_state.retriever = None
 
 def clear_text():
     st.session_state["input_text"] = ""
+
+def clear_states():
+    st.session_state.chat_history = []
+
+
 
 def submit():
     user_query = st.session_state.user_input
     if user_query:
         st.session_state.chat_history.append({"role": "user", "text": user_query})
         st.session_state.chat_history = st.session_state.chat_history[:20]
-
+        retriever = st.session_state.retriever
+        
         context_messages = st.session_state.chat_history[-5:]
        
         combined_query = ""
@@ -31,13 +39,15 @@ def submit():
             prefix = "User: " if msg["role"] == "user" else "BOT: "
             combined_query += prefix + msg["text"] + "\n"
         
-        # Add the current user query at the end to get the response contextually
         combined_query += "User: " + user_query + "\n"
 
-        retriever = doc_processing.create_retriever(st.session_state.document_chunks)
-        response = llm_generate.get_response(retriever,user_query)
+        
+        if retriever is None:
+            st.error("No document has been uploaded or processed.")
+            return
+        
+        response = llm_generate.get_response(retriever,combined_query)
 
-        # Append the bot's response to history
         st.session_state.chat_history.append({"role": "BOT", "text": response})
 
         # Clear input box
@@ -52,59 +62,34 @@ def main():
                                          )
             submitted = st.form_submit_button("Process document")
             if submitted and uploaded_files is not None:
+                clear_states()
                 st.session_state.filename = [file.name for file in uploaded_files]
                 for file in uploaded_files:  
                     st.session_state.document_chunks = doc_processing.chunk_documents(file, Chunk_size, Chunk_overalp)
-                    
-                    
-    if uploaded_files and st.session_state.document_chunks:      
-
-        st.markdown("""
-        <style>
-        .chat-container {
-            height: 70vh;
-            overflow-y: auto;
-            padding-bottom: 80px; /* space for input box */
-        }
-        .fixed-input {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: white;
-            padding: 10px;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-        </style>
-        """, unsafe_allow_html=True)
-
+                if st.session_state.document_chunks:
+                    st.session_state.retriever = doc_processing.create_retriever(st.session_state.document_chunks)
+                             
+    if uploaded_files and st.session_state.document_chunks:  
+        st.markdown(chat_container_css(), unsafe_allow_html=True)   
         chat_container = st.container()
+
         with chat_container:
             st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-
             for chat in st.session_state.chat_history:
                 styled_msg = style_message(chat['text'], chat['role'])
                 st.markdown(styled_msg, unsafe_allow_html=True)
 
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # Fixed input box container
+        
         st.markdown('<div class="fixed-input">', unsafe_allow_html=True)
         st.text_input("Your query:", key="user_input", on_change=submit)
         st.button("Submit", on_click=submit)
-
-        
-
+        st.markdown("")
 
             
     elif st.session_state.document_chunks == []:
         st.info("Unable to extract the text") 
-
-
-    
-
-
 
 
 if __name__ == "__main__":

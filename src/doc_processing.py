@@ -2,7 +2,7 @@ from langchain.document_loaders import PyPDFLoader
 from langchain_community.document_loaders.word_document import Docx2txtLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import FAISS 
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain.embeddings import HuggingFaceEmbeddings
 
 import tempfile
 
@@ -38,8 +38,8 @@ def chunk_documents(uploaded_file, Chunk_size, Chunk_overalp):
 
 
 def create_retriever(documents):
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001")
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = FAISS.from_documents(documents, embeddings)
     retriever = vectorstore.as_retriever()
     return retriever
